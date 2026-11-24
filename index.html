@@ -133,6 +133,10 @@
         <div class="hud-actions">
           <button id="btn-pause" class="btn-tiny">⏸ 暫停</button>
           <button id="btn-mute" class="btn-tiny">🔊 音效</button>
+          <label class="vol-control" title="調整音量">
+            <input id="volume-slider" type="range" min="0" max="100" value="75" aria-label="音量控制" />
+            <span id="volume-label">75%</span>
+          </label>
           <button id="btn-quit" class="btn-tiny">選角</button>
         </div>
 
@@ -163,6 +167,11 @@
         <div class="badge">PAUSED</div>
         <h2>遊戲暫停</h2>
         <p class="result-quote">按 ESC 或點擊繼續即可恢復戰鬥</p>
+        <div class="pause-vol-row">
+          <span>🔊 音量</span>
+          <input id="pause-volume-slider" type="range" min="0" max="100" value="75" aria-label="暫停選單音量控制" />
+          <span id="pause-volume-label">75%</span>
+        </div>
         <div class="result-actions">
           <button id="btn-resume" class="btn-fight">繼續戰鬥</button>
           <button id="btn-pause-rematch" class="btn-small">重新對戰</button>

@@ -21,15 +21,30 @@ const midiToHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
 class SoundEngine {
   constructor() {
     this.ctx = null;
-    this.muted = false;
+    this.masterGain = null;
+    const savedVol = Number(localStorage.getItem('tkof_volume'));
+    this.volume = Number.isFinite(savedVol) ? Math.max(0, Math.min(1, savedVol)) : 0.75;
+    this.muted = localStorage.getItem('tkof_muted') === '1';
     this._bgmTimer = null;
     this._bgmStep = 0;
     this._bgmNextTime = 0;
     this._currentTrackId = null;
   }
 
+  setVolume(val) {
+    this.volume = Math.max(0, Math.min(1, val));
+    localStorage.setItem('tkof_volume', String(this.volume));
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(this.muted ? 0 : this.volume, this.ctx.currentTime);
+    }
+  }
+
   setMuted(val) {
     this.muted = val;
+    localStorage.setItem('tkof_muted', val ? '1' : '0');
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(val ? 0 : this.volume, this.ctx.currentTime);
+    }
     if (val) {
       this._pauseBGM();
       if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -39,14 +54,14 @@ class SoundEngine {
   }
 
   speak(text, pitch = 1.0) {
-    if (this.muted || !window.speechSynthesis || !text) return;
+    if (this.muted || this.volume <= 0 || !window.speechSynthesis || !text) return;
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'zh-TW';
       u.rate = 1.15;
       u.pitch = pitch;
-      u.volume = 0.9;
+      u.volume = this.volume;
       window.speechSynthesis.speak(u);
     } catch {
       // Ignore speech synthesis errors on restricted browsers
@@ -103,7 +118,7 @@ class SoundEngine {
       gain.gain.setValueAtTime(0.09, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + stepDur * 0.9);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.masterGain || ctx.destination);
       osc.start(time);
       osc.stop(time + stepDur * 0.92);
     }
@@ -116,7 +131,7 @@ class SoundEngine {
       gain.gain.setValueAtTime(0.045, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + stepDur * 1.4);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.masterGain || ctx.destination);
       osc.start(time);
       osc.stop(time + stepDur * 1.45);
     }
@@ -131,7 +146,7 @@ class SoundEngine {
       gain.gain.setValueAtTime(0.11, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.masterGain || ctx.destination);
       osc.start(time);
       osc.stop(time + 0.11);
     }
@@ -143,6 +158,9 @@ class SoundEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return null;
       this.ctx = new AudioCtx();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.setValueAtTime(this.muted ? 0 : this.volume, this.ctx.currentTime);
+      this.masterGain.connect(this.ctx.destination);
     }
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
@@ -162,7 +180,7 @@ class SoundEngine {
     gain.gain.setValueAtTime(gainVal, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.masterGain || ctx.destination);
     osc.start(now);
     osc.stop(now + duration);
   }
@@ -190,7 +208,7 @@ class SoundEngine {
 
     src.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.masterGain || ctx.destination);
     src.start(now);
   }
 

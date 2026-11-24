@@ -432,10 +432,33 @@ el('btn-close-hint').addEventListener('click', () => {
   el('portrait-hint').classList.add('dismissed');
 });
 
+function syncVolumeUI() {
+  const pct = Math.round(sound.volume * 100);
+  el('volume-slider').value = String(pct);
+  el('pause-volume-slider').value = String(pct);
+  el('volume-label').textContent = `${pct}%`;
+  el('pause-volume-label').textContent = `${pct}%`;
+  el('btn-mute').textContent = sound.muted || pct === 0 ? '🔇 靜音' : '🔊 音效';
+}
+
+function handleVolumeInput(e) {
+  const val = Number(e.target.value) / 100;
+  sound.setVolume(val);
+  if (val > 0 && sound.muted) {
+    sound.setMuted(false);
+  }
+  syncVolumeUI();
+}
+
+el('volume-slider').addEventListener('input', handleVolumeInput);
+el('pause-volume-slider').addEventListener('input', handleVolumeInput);
+
 el('btn-mute').addEventListener('click', () => {
   sound.setMuted(!sound.muted);
-  el('btn-mute').textContent = sound.muted ? '🔇 靜音' : '🔊 音效';
+  syncVolumeUI();
 });
+
+syncVolumeUI();
 
 el('btn-quit').addEventListener('click', () => {
   sound.stopBGM();
