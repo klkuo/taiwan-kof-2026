@@ -1,4 +1,4 @@
-import { ROSTER, ROSTER_BY_ID } from './roster.js';
+import { ROSTER, ROSTER_BY_ID, getRivalIntro } from './roster.js';
 import { sound } from './audio.js';
 import { CombatEngine } from './physics.js';
 import { FighterAI } from './ai.js';
@@ -9,6 +9,7 @@ const el = (id) => document.getElementById(id);
 const titleScreen = el('title-screen');
 const selectScreen = el('select-screen');
 const hud = el('hud');
+const pauseModal = el('pause-modal');
 const resultModal = el('result-modal');
 
 const rosterGrid = el('roster-grid');
@@ -18,6 +19,7 @@ const btnFight = el('btn-fight');
 
 const announcer = el('announcer');
 const specialBanner = el('special-banner');
+const rivalBanner = el('rival-banner');
 const comboBadges = [el('combo-p1'), el('combo-p2')];
 
 let manifest = null;
@@ -36,6 +38,11 @@ let roundNum = 1;
 let matchPhase = 'idle'; // intro | fighting | roundOver | matchOver
 let phaseTimer = 0;
 let bannerTimer = 0;
+let paused = false;
+
+// Double-tap dash tracking
+const lastTapTime = {};
+const dashTriggers = new Set();
 
 // Keyboard & Touch state
 const keysDown = new Set();
@@ -79,8 +86,21 @@ window.addEventListener('keydown', (e) => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
     e.preventDefault();
   }
+  if (e.code === 'Escape' && engine && matchPhase !== 'matchOver') {
+    togglePause();
+    return;
+  }
   if (!keysDown.has(e.code)) {
     keysJustPressed.add(e.code);
+    if (['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+      const now = performance.now();
+      if (lastTapTime[e.code] && now - lastTapTime[e.code] < 240) {
+        dashTriggers.add(e.code);
+        lastTapTime[e.code] = 0;
+      } else {
+        lastTapTime[e.code] = now;
+      }
+    }
   }
   keysDown.add(e.code);
 });
@@ -107,11 +127,21 @@ function consumeTouch(action) {
   return false;
 }
 
+function consumeDash(code) {
+  if (dashTriggers.has(code)) {
+    dashTriggers.delete(code);
+    return true;
+  }
+  return false;
+}
+
 function getP1Input() {
   return {
     left: keysDown.has('KeyA') || touchHeld.left,
     right: keysDown.has('KeyD') || touchHeld.right,
     up: keysDown.has('KeyW') || touchHeld.up,
+    dashLeft: consumeDash('KeyA'),
+    dashRight: consumeDash('KeyD'),
     punch: consumePress(['KeyJ']) || consumeTouch('punch'),
     kick: consumePress(['KeyK']) || consumeTouch('kick'),
     special: consumePress(['KeyL', 'KeyU']) || consumeTouch('special'),
@@ -123,6 +153,8 @@ function getP2Input() {
     left: keysDown.has('ArrowLeft'),
     right: keysDown.has('ArrowRight'),
     up: keysDown.has('ArrowUp'),
+    dashLeft: consumeDash('ArrowLeft'),
+    dashRight: consumeDash('ArrowRight'),
     punch: consumePress(['Numpad1', 'Digit1', 'KeyI']),
     kick: consumePress(['Numpad2', 'Digit2', 'KeyO']),
     special: consumePress(['Numpad3', 'Digit3', 'KeyP']),
@@ -130,8 +162,20 @@ function getP2Input() {
 }
 
 function showScreen(target) {
-  [titleScreen, selectScreen, resultModal].forEach((s) => s.classList.remove('active'));
+  [titleScreen, selectScreen, pauseModal, resultModal].forEach((s) => s.classList.remove('active'));
   if (target) target.classList.add('active');
+}
+
+function togglePause(force) {
+  if (!engine) return;
+  paused = typeof force === 'boolean' ? force : !paused;
+  if (paused) {
+    sound._pauseBGM();
+    showScreen(pauseModal);
+  } else {
+    showScreen(null);
+    if (!sound.muted && p2Pick) sound.playBGM(p2Pick.id);
+  }
 }
 
 function updatePreview(slot, char) {
@@ -239,6 +283,7 @@ function updateWinStars() {
 }
 
 function startMatch() {
+  paused = false;
   sound.confirm();
   showScreen(null);
   hud.classList.remove('hidden');
@@ -273,9 +318,17 @@ function startRound() {
   el('hud-round').textContent =
     mode === 'arcade' ? `STAGE ${arcadeStage + 1}/4 • ROUND ${roundNum}` : `ROUND ${roundNum}`;
   matchPhase = 'intro';
-  phaseTimer = 1.35;
+  phaseTimer = 1.5;
   showAnnouncer(`ROUND ${roundNum}`);
   sound.roundStart();
+
+  const rivalText = roundNum === 1 ? getRivalIntro(p1Pick.id, p2Pick.id) : null;
+  if (rivalText) {
+    rivalBanner.textContent = rivalText;
+    rivalBanner.classList.remove('hidden');
+  } else {
+    rivalBanner.classList.add('hidden');
+  }
 }
 
 function updateHUD() {
@@ -340,6 +393,21 @@ el('btn-back-title').addEventListener('click', () => {
 
 btnFight.addEventListener('click', startMatch);
 
+el('btn-pause').addEventListener('click', () => togglePause(true));
+el('btn-resume').addEventListener('click', () => togglePause(false));
+el('btn-pause-rematch').addEventListener('click', startMatch);
+el('btn-pause-select').addEventListener('click', () => {
+  paused = false;
+  sound.stopBGM();
+  hud.classList.add('hidden');
+  engine = null;
+  showScreen(selectScreen);
+});
+
+el('btn-close-hint').addEventListener('click', () => {
+  el('portrait-hint').classList.add('dismissed');
+});
+
 el('btn-mute').addEventListener('click', () => {
   sound.setMuted(!sound.muted);
   el('btn-mute').textContent = sound.muted ? '🔇 靜音' : '🔊 音效';
@@ -380,12 +448,17 @@ function loop(now) {
   }
 
   if (engine) {
+    if (paused) {
+      renderer.renderer.render(renderer.scene, renderer.camera);
+      return;
+    }
     if (matchPhase === 'intro') {
       phaseTimer -= dt;
       if (phaseTimer <= 0.45 && phaseTimer > 0) {
         showAnnouncer('FIGHT!');
       } else if (phaseTimer <= 0) {
         hideAnnouncer();
+        rivalBanner.classList.add('hidden');
         matchPhase = 'fighting';
       }
       engine.step(dt, [{}, {}]);

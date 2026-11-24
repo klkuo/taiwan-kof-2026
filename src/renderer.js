@@ -34,6 +34,9 @@ export class ArenaRenderer {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.shake = 0;
+    this.superFlash = 0;
+    this.superFlashTargetX = 0;
+    this.mirrorP2 = false;
     this.particles = [];
     this.projMeshes = new Map();
     this.fighterMeshes = [null, null];
@@ -42,6 +45,8 @@ export class ArenaRenderer {
     this.afterimages = [];
     this.afterimageTimers = [0, 0];
     this.flashLights = [];
+    this.ambientLight = null;
+    this.keyLight = null;
     this.stageGroup = new THREE.Group();
     this.scene.add(this.stageGroup);
     this.stageController = null;
@@ -59,12 +64,12 @@ export class ArenaRenderer {
   }
 
   _initLights() {
-    const ambient = new THREE.AmbientLight('#a5b4fc', 0.85);
-    this.scene.add(ambient);
+    this.ambientLight = new THREE.AmbientLight('#a5b4fc', 0.85);
+    this.scene.add(this.ambientLight);
 
-    const keyLight = new THREE.DirectionalLight('#ffffff', 1.2);
-    keyLight.position.set(0, 12, 8);
-    this.scene.add(keyLight);
+    this.keyLight = new THREE.DirectionalLight('#ffffff', 1.2);
+    this.keyLight.position.set(0, 12, 8);
+    this.scene.add(this.keyLight);
 
     const p1Light = new THREE.PointLight('#22d3ee', 2.2, 16);
     p1Light.position.set(-5, 3, 2);
@@ -106,6 +111,7 @@ export class ArenaRenderer {
   }
 
   setupFighters(p1Id, p2Id) {
+    this.mirrorP2 = p1Id === p2Id;
     for (let i = 0; i < 2; i++) {
       if (this.fighterMeshes[i]) this.scene.remove(this.fighterMeshes[i]);
       if (this.shadowMeshes[i]) this.scene.remove(this.shadowMeshes[i]);
@@ -151,6 +157,7 @@ export class ArenaRenderer {
     if (f.state === 'punch') return 'punch';
     if (f.state === 'kick') return 'kick';
     if (f.state === 'jump') return 'kick';
+    if (f.state === 'dash') return frames.dash ? 'dash' : 'run';
     if (f.state === 'run') {
       if (frames.dash && Math.floor(performance.now() / 130) % 2 === 1) {
         return 'dash';
@@ -158,6 +165,84 @@ export class ArenaRenderer {
       return 'run';
     }
     return 'idle';
+  }
+
+  _createProjectileMesh(p) {
+    const group = new THREE.Group();
+    const id = p.charId;
+
+    if (id === 'han') {
+      // Spinning golden ingots
+      for (let i = -1; i <= 1; i++) {
+        const ingot = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.28, 0.18, 0.22, 6),
+          new THREE.MeshBasicMaterial({ color: '#facc15' })
+        );
+        ingot.position.set(i * 0.28, (i % 2) * 0.28, 0);
+        ingot.rotation.z = Math.PI / 2;
+        group.add(ingot);
+      }
+    } else if (id === 'ko') {
+      // SOP holographic blue panels
+      const panel = new THREE.Mesh(
+        new THREE.BoxGeometry(p.radius * 2.0, 0.72, 0.18),
+        new THREE.MeshBasicMaterial({ color: '#06b6d4', transparent: true, opacity: 0.55 })
+      );
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(p.radius * 2.05, 0.76, 0.22),
+        new THREE.MeshBasicMaterial({ color: '#a5f3fc', wireframe: true })
+      );
+      group.add(panel, frame);
+    } else if (id === 'ma') {
+      // Ice crystal shards
+      for (let i = 0; i < 3; i++) {
+        const shard = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.28),
+          new THREE.MeshBasicMaterial({ color: i === 0 ? '#e0f2fe' : '#38bdf8' })
+        );
+        shard.position.set((i - 1) * 0.25, (i === 1 ? 0.22 : -0.18), 0);
+        group.add(shard);
+      }
+    } else if (id === 'mo') {
+      // Crimson star blast
+      const core = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.55),
+        new THREE.MeshBasicMaterial({ color: '#facc15' })
+      );
+      const halo = new THREE.Mesh(
+        new THREE.TorusGeometry(0.85, 0.14, 8, 24),
+        new THREE.MeshBasicMaterial({ color: '#ef4444' })
+      );
+      group.add(core, halo);
+    } else if (p.type === 'wave') {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(p.radius * 0.65, 0.14, 10, 28),
+        new THREE.MeshBasicMaterial({ color: p.accent })
+      );
+      const inner = new THREE.Mesh(
+        new THREE.SphereGeometry(p.radius * 0.42, 12, 12),
+        new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.55 })
+      );
+      group.add(ring, inner);
+    } else {
+      const coreGeo =
+        p.type === 'beam'
+          ? new THREE.BoxGeometry(p.radius * 2.1, 0.55, 0.4)
+          : p.type === 'pillar'
+          ? new THREE.ConeGeometry(p.radius * 0.6, 3.2, 8)
+          : new THREE.SphereGeometry(p.radius * 0.55, 14, 14);
+      const core = new THREE.Mesh(
+        coreGeo,
+        new THREE.MeshBasicMaterial({ color: p.accent, transparent: true, opacity: 0.9 })
+      );
+      const outer = new THREE.Mesh(
+        coreGeo,
+        new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.42 })
+      );
+      outer.scale.set(1.35, 1.35, 1.35);
+      group.add(core, outer);
+    }
+    return group;
   }
 
   _spawnAfterimage(sourceMesh, color, offsetX, facing) {
@@ -218,12 +303,26 @@ export class ArenaRenderer {
         this.spawnSparks(ev.x, ev.y, '#93c5fd', 8);
         this.shake = Math.max(this.shake, 0.06);
       } else if (ev.type === 'specialCast') {
-        this.shake = Math.max(this.shake, 0.2);
+        this.shake = Math.max(this.shake, ev.isMax ? 0.34 : 0.2);
         this.flashLights[ev.slot].color.set(ev.color);
-        this.flashLights[ev.slot].intensity = 6;
+        this.flashLights[ev.slot].intensity = ev.isMax ? 9 : 6;
+        if (ev.isMax) {
+          this.superFlash = 0.28;
+          this.superFlashTargetX = ev.x;
+        }
       } else if (ev.type === 'ko') {
         this.shake = 0.45;
       }
+    }
+
+    // Super flash lighting dim & restore
+    if (this.superFlash > 0) {
+      this.superFlash = Math.max(0, this.superFlash - dt);
+      if (this.ambientLight) this.ambientLight.intensity = 0.18;
+      if (this.keyLight) this.keyLight.intensity = 0.25;
+    } else {
+      if (this.ambientLight) this.ambientLight.intensity += (0.85 - this.ambientLight.intensity) * Math.min(1, dt * 10);
+      if (this.keyLight) this.keyLight.intensity += (1.2 - this.keyLight.intensity) * Math.min(1, dt * 10);
     }
 
     // Decay flash lights
@@ -261,11 +360,13 @@ export class ArenaRenderer {
         this._spawnAfterimage(mesh, f.config.color, frame.index / meta.frameCount, f.facing);
       }
 
-      // Hit flash white/red tint
+      // Hit flash white/red tint & mirror-match alt palette
       if (f.hitFlash > 0) {
         mesh.material.color.set('#ff9999');
       } else if (f.blocking) {
         mesh.material.color.set('#93c5fd');
+      } else if (this.mirrorP2 && slot === 1) {
+        mesh.material.color.set('#a5f3fc');
       } else {
         mesh.material.color.set('#ffffff');
       }
@@ -301,33 +402,12 @@ export class ArenaRenderer {
     for (const p of engine.projectiles) {
       let group = this.projMeshes.get(p);
       if (!group) {
-        group = new THREE.Group();
-        const coreGeo =
-          p.type === 'beam'
-            ? new THREE.BoxGeometry(p.radius * 2.1, 0.55, 0.4)
-            : p.type === 'pillar'
-            ? new THREE.ConeGeometry(p.radius * 0.6, 3.2, 8)
-            : new THREE.SphereGeometry(p.radius * 0.55, 14, 14);
-        const coreMat = new THREE.MeshBasicMaterial({
-          color: p.accent,
-          transparent: true,
-          opacity: 0.9,
-        });
-        const outerMat = new THREE.MeshBasicMaterial({
-          color: p.color,
-          transparent: true,
-          opacity: 0.42,
-        });
-        const core = new THREE.Mesh(coreGeo, coreMat);
-        const outer = new THREE.Mesh(coreGeo, outerMat);
-        outer.scale.set(1.35, 1.35, 1.35);
-        group.add(core);
-        group.add(outer);
+        group = this._createProjectileMesh(p);
         this.scene.add(group);
         this.projMeshes.set(p, group);
       }
       group.position.set(p.x, p.y, 0.18);
-      if (p.type === 'projectile') group.rotation.z += dt * 10;
+      if (p.type === 'projectile' || p.charId === 'mo') group.rotation.z += dt * 10;
     }
 
     // Update particles
@@ -346,13 +426,13 @@ export class ArenaRenderer {
       pt.mesh.material.opacity = pt.life / pt.maxLife;
     }
 
-    // Dynamic fighting camera
+    // Dynamic fighting camera (zooms in during MAX Super Flash)
     const f0 = engine.fighters[0];
     const f1 = engine.fighters[1];
     const midX = (f0.x + f1.x) * 0.5;
     const dist = Math.abs(f0.x - f1.x);
-    const targetZ = Math.max(8.4, Math.min(13.2, 7.6 + dist * 0.52));
-    const targetX = midX * 0.55;
+    const targetZ = this.superFlash > 0 ? 7.2 : Math.max(8.4, Math.min(13.2, 7.6 + dist * 0.52));
+    const targetX = this.superFlash > 0 ? this.superFlashTargetX * 0.7 : midX * 0.55;
 
     this.camera.position.x += (targetX - this.camera.position.x) * Math.min(1, dt * 8);
     this.camera.position.z += (targetZ - this.camera.position.z) * Math.min(1, dt * 6);

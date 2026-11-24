@@ -486,6 +486,50 @@ body {
   letter-spacing: 0.08em;
 }
 
+.rival-banner {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, 90vw);
+  text-align: center;
+  padding: 10px 20px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  color: #e2e8f0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.portrait-hint {
+  display: none;
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  font-size: 12px;
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+.portrait-hint.dismissed {
+  display: none !important;
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .portrait-hint {
+    display: flex;
+  }
+}
+
 .announcer {
   position: fixed;
   top: 44%;

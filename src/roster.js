@@ -210,3 +210,18 @@ export const ROSTER = [
 ];
 
 export const ROSTER_BY_ID = Object.fromEntries(ROSTER.map((c) => [c.id, c]));
+
+const RIVAL_INTROS = {
+  'li|mo': '賴輕得：「為了台灣，絕不退讓！」  VS  終極魔王：「見識終極壓迫感吧！」',
+  'huan|ko': '柯問哲：「照我的 SOP 來打！」  VS  黃國唱：「太離譜了！別跟我講 SOP！」',
+  'chen|han': '韓國魚：「貨出去、拳進來、發大財！」  VS  陳誰扁：「有夢最美，一拳相隨！」',
+  'ma|tsai': '蔡贏穩：「冷靜應對，數位防禦！」  VS  馬英酒：「請多指教，極寒冰晶！」',
+  'lu|san': '盧秀焰：「媽媽的粉紅守護！」  VS  黃閃閃：「雙影疾風，務實致勝！」',
+  'ho|ko': '侯友誼：「侯侯做代誌，鐵漢一拳！」  VS  柯問哲：「科學理性，SOP 雷射！」',
+};
+
+export function getRivalIntro(id1, id2) {
+  if (id1 === id2) return 'MIRROR MATCH！同門內戰・2P 異色版出擊！';
+  const key = [id1, id2].sort().join('|');
+  return RIVAL_INTROS[key] || null;
+}

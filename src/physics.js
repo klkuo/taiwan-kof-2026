@@ -34,13 +34,14 @@ export class FighterState {
   }
 
   get busy() {
-    return ['punch', 'kick', 'special', 'hit', 'ko'].includes(this.state);
+    return ['punch', 'kick', 'special', 'dash', 'hit', 'ko'].includes(this.state);
   }
 }
 
 export class Projectile {
-  constructor({ ownerSlot, x, y, vx, radius, damage, color, accent, type, maxLife = 1.6 }) {
+  constructor({ ownerSlot, charId, x, y, vx, radius, damage, color, accent, type, maxLife = 1.6 }) {
     this.ownerSlot = ownerSlot;
+    this.charId = charId;
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -149,14 +150,43 @@ export class CombatEngine {
           f.state = f.grounded ? 'idle' : 'jump';
           f.stateTimer = 0;
         }
+      } else if (f.state === 'dash') {
+        if (f.stateTimer >= 0.20) {
+          f.vx *= 0.3;
+          f.state = f.grounded ? 'idle' : 'jump';
+          f.stateTimer = 0;
+        }
       } else if (f.state === 'punch') {
         f.vx *= Math.pow(0.01, dt);
+        // Chain combo cancel: punch hit -> kick or special
+        if (f.hitHasConnected && f.stateTimer >= 0.08) {
+          if (inp.special && f.energy >= 35) {
+            this._startSpecial(f);
+            this._applyPhysics(f, dt);
+            return;
+          }
+          if (inp.kick) {
+            f.state = 'kick';
+            f.stateTimer = 0;
+            f.hitHasConnected = false;
+            if (f.grounded) f.vx = f.facing * 4.2;
+            sound.whoosh();
+            this._applyPhysics(f, dt);
+            return;
+          }
+        }
         if (f.stateTimer >= 0.28) {
           f.state = f.grounded ? 'idle' : 'jump';
           f.stateTimer = 0;
         }
       } else if (f.state === 'kick') {
         if (f.grounded) f.vx *= Math.pow(0.04, dt);
+        // Chain combo cancel: kick hit -> special
+        if (f.hitHasConnected && f.stateTimer >= 0.12 && inp.special && f.energy >= 35) {
+          this._startSpecial(f);
+          this._applyPhysics(f, dt);
+          return;
+        }
         if (f.stateTimer >= 0.40) {
           f.state = f.grounded ? 'idle' : 'jump';
           f.stateTimer = 0;
@@ -183,6 +213,12 @@ export class CombatEngine {
 
     if (inp.special && f.energy >= 35) {
       this._startSpecial(f);
+    } else if ((inp.dashLeft || inp.dashRight) && f.grounded) {
+      const dashDir = inp.dashRight ? 1 : -1;
+      f.state = 'dash';
+      f.stateTimer = 0;
+      f.vx = dashDir * 15.0;
+      sound.whoosh();
     } else if (inp.kick) {
       f.state = 'kick';
       f.stateTimer = 0;
@@ -239,6 +275,7 @@ export class CombatEngine {
       this.projectiles.push(
         new Projectile({
           ownerSlot: f.slot,
+          charId: f.config.id,
           x: f.x + f.facing * 1.15,
           y: f.y + 1.25,
           vx: f.facing * (isMax ? 13.5 : 10.8),
@@ -254,6 +291,7 @@ export class CombatEngine {
       this.projectiles.push(
         new Projectile({
           ownerSlot: f.slot,
+          charId: f.config.id,
           x: f.x + f.facing * 3.2,
           y: f.y + 1.25,
           vx: f.facing * 2.5,
@@ -269,6 +307,7 @@ export class CombatEngine {
       this.projectiles.push(
         new Projectile({
           ownerSlot: f.slot,
+          charId: f.config.id,
           x: f.x + f.facing * 0.9,
           y: f.y + 1.2,
           vx: f.facing * 5.2,
@@ -284,6 +323,7 @@ export class CombatEngine {
       this.projectiles.push(
         new Projectile({
           ownerSlot: f.slot,
+          charId: f.config.id,
           x: f.x + f.facing * 2.6,
           y: 1.3,
           vx: f.facing * 1.4,

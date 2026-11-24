@@ -48,6 +48,11 @@ export class FighterRig {
       spineStretch = 1.0 + Math.sin(t * 5.2 - 0.5) * 0.022;
       spineLean = Math.sin(t * 2.6) * 0.025;
       headTilt = Math.sin(t * 5.2 - 1.0) * 0.04;
+    } else if (f.state === 'dash') {
+      squashX = 1.18;
+      squashY = 0.88;
+      spineLean = 0.24;
+      hipY = 0.06;
     } else if (f.state === 'run') {
       const stride = Math.abs(Math.sin(t * 16));
       hipY = stride * 0.14;
