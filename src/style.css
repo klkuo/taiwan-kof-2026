@@ -10,6 +10,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
   background: #070b18;
   color: #f8fafc;
   font-family: 'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -585,14 +587,110 @@ body {
   flex-wrap: wrap;
 }
 
+/* Mobile Virtual Controls */
+.touch-controls {
+  display: none;
+  pointer-events: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 54px;
+  padding: 0 18px;
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 15;
+}
+
+body.has-touch .touch-controls {
+  display: flex;
+}
+
+.touch-pad,
+.touch-actions {
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  touch-action: none;
+}
+
+.t-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 900;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+  transition: transform 0.06s ease, background 0.06s ease;
+}
+
+.t-btn.active {
+  transform: scale(0.92);
+  background: rgba(56, 189, 248, 0.55);
+  border-color: #facc15;
+}
+
+.t-up {
+  transform: translateY(-18px);
+}
+
+.t-up.active {
+  transform: translateY(-18px) scale(0.92);
+}
+
+.t-punch {
+  border-color: #38bdf8;
+}
+
+.t-kick {
+  border-color: #fb923c;
+}
+
+.t-special {
+  width: 66px;
+  height: 66px;
+  font-size: 15px;
+  border-color: #facc15;
+  background: rgba(234, 88, 12, 0.55);
+}
+
+@media (hover: none) and (pointer: coarse), (max-width: 900px) {
+  .touch-controls {
+    display: flex;
+  }
+}
+
 @media (max-width: 880px) {
+  .overlay {
+    overflow-y: auto;
+    align-items: flex-start;
+    padding: 16px 0;
+  }
   .mode-buttons {
     grid-template-columns: 1fr;
   }
   .select-body {
     grid-template-columns: 1fr;
   }
+  .roster-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .preview-panel {
     display: none;
+  }
+  .hud {
+    padding: 10px 12px;
+  }
+  .hud-portrait {
+    width: 44px;
+    height: 44px;
+  }
+  .timer-num {
+    font-size: 28px;
   }
 }

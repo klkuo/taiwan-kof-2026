@@ -37,9 +37,43 @@ let matchPhase = 'idle'; // intro | fighting | roundOver | matchOver
 let phaseTimer = 0;
 let bannerTimer = 0;
 
-// Keyboard state
+// Keyboard & Touch state
 const keysDown = new Set();
 const keysJustPressed = new Set();
+const touchHeld = { left: false, right: false, up: false };
+const touchJustPressed = { punch: false, kick: false, special: false };
+
+window.addEventListener(
+  'touchstart',
+  () => {
+    document.body.classList.add('has-touch');
+  },
+  { once: true, passive: true }
+);
+
+document.querySelectorAll('.t-btn').forEach((btn) => {
+  const action = btn.dataset.action;
+  const press = (e) => {
+    e.preventDefault();
+    btn.classList.add('active');
+    if (action in touchHeld) {
+      touchHeld[action] = true;
+    } else if (action in touchJustPressed) {
+      touchJustPressed[action] = true;
+    }
+  };
+  const release = (e) => {
+    e.preventDefault();
+    btn.classList.remove('active');
+    if (action in touchHeld) {
+      touchHeld[action] = false;
+    }
+  };
+  btn.addEventListener('pointerdown', press);
+  btn.addEventListener('pointerup', release);
+  btn.addEventListener('pointercancel', release);
+  btn.addEventListener('pointerleave', release);
+});
 
 window.addEventListener('keydown', (e) => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
@@ -65,14 +99,22 @@ function consumePress(codes) {
   return false;
 }
 
+function consumeTouch(action) {
+  if (touchJustPressed[action]) {
+    touchJustPressed[action] = false;
+    return true;
+  }
+  return false;
+}
+
 function getP1Input() {
   return {
-    left: keysDown.has('KeyA'),
-    right: keysDown.has('KeyD'),
-    up: keysDown.has('KeyW'),
-    punch: consumePress(['KeyJ']),
-    kick: consumePress(['KeyK']),
-    special: consumePress(['KeyL', 'KeyU']),
+    left: keysDown.has('KeyA') || touchHeld.left,
+    right: keysDown.has('KeyD') || touchHeld.right,
+    up: keysDown.has('KeyW') || touchHeld.up,
+    punch: consumePress(['KeyJ']) || consumeTouch('punch'),
+    kick: consumePress(['KeyK']) || consumeTouch('kick'),
+    special: consumePress(['KeyL', 'KeyU']) || consumeTouch('special'),
   };
 }
 

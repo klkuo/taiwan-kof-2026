@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>TAIWAN KOF 2026 — 台灣格鬥天王</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
@@ -135,6 +135,20 @@
         <div class="energy-wrap p2">
           <div class="energy-label"><span id="hud-p2-energy-txt">50%</span> POWER</div>
           <div class="energy-track"><div id="hud-p2-energy" class="energy-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Mobile Virtual Controls -->
+      <div id="touch-controls" class="touch-controls">
+        <div class="touch-pad">
+          <button class="t-btn t-dir" data-action="left" aria-label="向左">◀</button>
+          <button class="t-btn t-dir t-up" data-action="up" aria-label="跳躍">▲</button>
+          <button class="t-btn t-dir" data-action="right" aria-label="向右">▶</button>
+        </div>
+        <div class="touch-actions">
+          <button class="t-btn t-atk t-punch" data-action="punch">拳</button>
+          <button class="t-btn t-atk t-kick" data-action="kick">腳</button>
+          <button class="t-btn t-atk t-special" data-action="special">必殺</button>
         </div>
       </div>
     </div>
