@@ -88,6 +88,10 @@
               <div id="hud-p1-hp-trail" class="hp-trail"></div>
               <div id="hud-p1-hp" class="hp-fill"></div>
             </div>
+            <div class="energy-wrap p1">
+              <div class="energy-track"><div id="hud-p1-energy" class="energy-fill"></div></div>
+              <div class="energy-label">POWER <span id="hud-p1-energy-txt">50%</span></div>
+            </div>
           </div>
         </div>
 
@@ -109,6 +113,10 @@
               <div id="hud-p2-hp-trail" class="hp-trail"></div>
               <div id="hud-p2-hp" class="hp-fill"></div>
             </div>
+            <div class="energy-wrap p2">
+              <div class="energy-track"><div id="hud-p2-energy" class="energy-fill"></div></div>
+              <div class="energy-label"><span id="hud-p2-energy-txt">50%</span> POWER</div>
+            </div>
           </div>
           <img id="hud-p2-portrait" class="hud-portrait" src="" alt="" />
         </div>
@@ -123,13 +131,8 @@
       <div id="special-banner" class="special-banner hidden"></div>
       <div id="announcer" class="announcer hidden">ROUND 1</div>
 
-      <!-- Bottom Energy Bars & Quick Controls -->
+      <!-- Bottom Quick Controls -->
       <div class="hud-bottom">
-        <div class="energy-wrap p1">
-          <div class="energy-label">POWER <span id="hud-p1-energy-txt">50%</span></div>
-          <div class="energy-track"><div id="hud-p1-energy" class="energy-fill"></div></div>
-        </div>
-
         <div class="hud-actions">
           <button id="btn-pause" class="btn-tiny">⏸ 暫停</button>
           <button id="btn-mute" class="btn-tiny">🔊 音效</button>
@@ -138,11 +141,6 @@
             <span id="volume-label">75%</span>
           </label>
           <button id="btn-quit" class="btn-tiny">選角</button>
-        </div>
-
-        <div class="energy-wrap p2">
-          <div class="energy-label"><span id="hud-p2-energy-txt">50%</span> POWER</div>
-          <div class="energy-track"><div id="hud-p2-energy" class="energy-fill"></div></div>
         </div>
       </div>
 
