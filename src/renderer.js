@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildCharacterStage } from './stages.js';
+import { FighterRig } from './rig.js';
 
 /**
  * 2.5D WebGL Arena Renderer powered by Three.js.
@@ -36,7 +37,10 @@ export class ArenaRenderer {
     this.particles = [];
     this.projMeshes = new Map();
     this.fighterMeshes = [null, null];
+    this.fighterRigs = [null, null];
     this.shadowMeshes = [null, null];
+    this.afterimages = [];
+    this.afterimageTimers = [0, 0];
     this.flashLights = [];
     this.stageGroup = new THREE.Group();
     this.scene.add(this.stageGroup);
@@ -118,12 +122,13 @@ export class ArenaRenderer {
         alphaTest: 0.05,
         side: THREE.DoubleSide,
       });
-      // Cell aspect is 448x384 -> ~3.15 x 2.7 world units
-      const geo = new THREE.PlaneGeometry(3.15, 2.7);
+      // Subdivided plane (4x10) for smooth 2D skeletal bone deformation
+      const geo = new THREE.PlaneGeometry(3.15, 2.7, 4, 10);
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(slot === 0 ? -3.2 : 3.2, 1.35, 0);
       this.scene.add(mesh);
       this.fighterMeshes[slot] = mesh;
+      this.fighterRigs[slot] = new FighterRig(mesh);
 
       const shadowGeo = new THREE.CircleGeometry(0.85, 24);
       const shadowMat = new THREE.MeshBasicMaterial({
@@ -153,6 +158,27 @@ export class ArenaRenderer {
       return 'run';
     }
     return 'idle';
+  }
+
+  _spawnAfterimage(sourceMesh, color, offsetX, facing) {
+    const tex = sourceMesh.material.map.clone();
+    tex.offset.x = offsetX;
+    tex.needsUpdate = true;
+    const mat = new THREE.MeshBasicMaterial({
+      map: tex,
+      color,
+      transparent: true,
+      opacity: 0.36,
+      alphaTest: 0.05,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const ghost = new THREE.Mesh(sourceMesh.geometry.clone(), mat);
+    ghost.position.copy(sourceMesh.position);
+    ghost.position.z -= 0.04;
+    ghost.scale.x = facing;
+    this.scene.add(ghost);
+    this.afterimages.push({ mesh: ghost, life: 0.22, maxLife: 0.22 });
   }
 
   spawnSparks(x, y, color, count = 14) {
@@ -205,9 +231,11 @@ export class ArenaRenderer {
       l.intensity += (2.2 - l.intensity) * Math.min(1, dt * 6);
     }
 
-    // Update fighters
+    // Update fighters & 2D skeletal rigs
+    const nowSec = performance.now() * 0.001;
     engine.fighters.forEach((f, slot) => {
       const mesh = this.fighterMeshes[slot];
+      const rig = this.fighterRigs[slot];
       const shadow = this.shadowMeshes[slot];
       if (!mesh || !shadow) return;
 
@@ -218,11 +246,20 @@ export class ArenaRenderer {
       mesh.material.map.offset.x = frame.index / meta.frameCount;
       mesh.scale.x = f.facing;
 
-      // Subtle idle breathing bob
-      const bob = f.state === 'idle' ? Math.sin(performance.now() * 0.007 + slot) * 0.035 : 0;
+      if (rig) {
+        rig.update(f, dt, nowSec);
+      }
+
       const koTilt = f.state === 'ko' ? -f.facing * 0.55 : 0;
       mesh.rotation.z = koTilt;
-      mesh.position.set(f.x, f.y + 1.32 + bob - (f.state === 'ko' ? 0.45 : 0), slot * 0.02);
+      mesh.position.set(f.x, f.y + 1.32 - (f.state === 'ko' ? 0.45 : 0), slot * 0.02);
+
+      // Spawn tinted ghost afterimage during fast/special moves
+      this.afterimageTimers[slot] -= dt;
+      if ((f.state === 'special' || f.state === 'kick' || f.state === 'run') && this.afterimageTimers[slot] <= 0) {
+        this.afterimageTimers[slot] = f.state === 'special' ? 0.055 : 0.095;
+        this._spawnAfterimage(mesh, f.config.color, frame.index / meta.frameCount, f.facing);
+      }
 
       // Hit flash white/red tint
       if (f.hitFlash > 0) {
@@ -238,6 +275,20 @@ export class ArenaRenderer {
       shadow.position.x = f.x;
       shadow.scale.set(shadowScale, shadowScale, 1);
     });
+
+    // Update ghost afterimages
+    for (let i = this.afterimages.length - 1; i >= 0; i--) {
+      const ag = this.afterimages[i];
+      ag.life -= dt;
+      if (ag.life <= 0) {
+        this.scene.remove(ag.mesh);
+        ag.mesh.geometry.dispose();
+        ag.mesh.material.dispose();
+        this.afterimages.splice(i, 1);
+      } else {
+        ag.mesh.material.opacity = (ag.life / ag.maxLife) * 0.36;
+      }
+    }
 
     // Update projectiles
     const activeSet = new Set(engine.projectiles);
