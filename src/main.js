@@ -20,6 +20,7 @@ const btnFight = el('btn-fight');
 const announcer = el('announcer');
 const specialBanner = el('special-banner');
 const rivalBanner = el('rival-banner');
+const speechBubbles = [el('speech-p1'), el('speech-p2')];
 const comboBadges = [el('combo-p1'), el('combo-p2')];
 
 let manifest = null;
@@ -39,6 +40,7 @@ let matchPhase = 'idle'; // intro | fighting | roundOver | matchOver
 let phaseTimer = 0;
 let bannerTimer = 0;
 let paused = false;
+let introStep = 0; // tracks 3 -> 2 -> 1 -> FIGHT! steps
 
 // Double-tap dash tracking
 const lastTapTime = {};
@@ -312,15 +314,37 @@ function startMatch() {
   startRound();
 }
 
+function hideSpeechBubbles() {
+  speechBubbles.forEach((b) => b.classList.add('hidden'));
+}
+
+function showSpeech(slot, charConfig, text) {
+  const b = speechBubbles[slot];
+  b.textContent = `${charConfig.name}：「${text}」`;
+  b.classList.remove('hidden');
+  sound.speak(text, slot === 0 ? 1.05 : 0.92);
+}
+
 function startRound() {
   engine.resetRound(true);
   updateWinStars();
+  hideSpeechBubbles();
   el('hud-round').textContent =
     mode === 'arcade' ? `STAGE ${arcadeStage + 1}/4 • ROUND ${roundNum}` : `ROUND ${roundNum}`;
   matchPhase = 'intro';
-  phaseTimer = 1.5;
-  showAnnouncer(`ROUND ${roundNum}`);
-  sound.roundStart();
+
+  if (roundNum === 1) {
+    phaseTimer = 3.45;
+    introStep = 3;
+    showAnnouncer('3');
+    sound.tick();
+    showSpeech(0, p1Pick, p1Pick.introLine);
+  } else {
+    phaseTimer = 1.45;
+    introStep = 0;
+    showAnnouncer(`ROUND ${roundNum}`);
+    sound.roundStart();
+  }
 
   const rivalText = roundNum === 1 ? getRivalIntro(p1Pick.id, p2Pick.id) : null;
   if (rivalText) {
@@ -454,12 +478,33 @@ function loop(now) {
     }
     if (matchPhase === 'intro') {
       phaseTimer -= dt;
-      if (phaseTimer <= 0.45 && phaseTimer > 0) {
-        showAnnouncer('FIGHT!');
-      } else if (phaseTimer <= 0) {
-        hideAnnouncer();
-        rivalBanner.classList.add('hidden');
-        matchPhase = 'fighting';
+      if (roundNum === 1) {
+        if (phaseTimer <= 2.45 && introStep === 3) {
+          introStep = 2;
+          showAnnouncer('2');
+          sound.tick();
+          showSpeech(1, p2Pick, p2Pick.introLine);
+        } else if (phaseTimer <= 1.45 && introStep === 2) {
+          introStep = 1;
+          showAnnouncer('1');
+          sound.tick();
+        } else if (phaseTimer <= 0.45 && introStep === 1) {
+          introStep = 0;
+          hideSpeechBubbles();
+          showAnnouncer('FIGHT!');
+          sound.roundStart();
+        } else if (phaseTimer <= 0) {
+          hideAnnouncer();
+          rivalBanner.classList.add('hidden');
+          matchPhase = 'fighting';
+        }
+      } else {
+        if (phaseTimer <= 0.45 && phaseTimer > 0) {
+          showAnnouncer('FIGHT!');
+        } else if (phaseTimer <= 0) {
+          hideAnnouncer();
+          matchPhase = 'fighting';
+        }
       }
       engine.step(dt, [{}, {}]);
     } else if (matchPhase === 'fighting') {
@@ -482,8 +527,12 @@ function loop(now) {
       if (engine.finished) {
         updateWinStars();
         matchPhase = 'roundOver';
-        phaseTimer = 1.9;
+        phaseTimer = 2.2;
         showAnnouncer(engine.winnerSlot === 'draw' ? 'DRAW!' : 'K.O.!');
+        if (engine.winnerSlot === 0 || engine.winnerSlot === 1) {
+          const winner = engine.fighters[engine.winnerSlot].config;
+          showSpeech(engine.winnerSlot, winner, winner.koLine);
+        }
       }
     } else if (matchPhase === 'roundOver') {
       phaseTimer -= dt;

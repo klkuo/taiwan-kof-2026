@@ -32,9 +32,29 @@ class SoundEngine {
     this.muted = val;
     if (val) {
       this._pauseBGM();
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
     } else if (this._currentTrackId) {
       this.playBGM(this._currentTrackId);
     }
+  }
+
+  speak(text, pitch = 1.0) {
+    if (this.muted || !window.speechSynthesis || !text) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-TW';
+      u.rate = 1.15;
+      u.pitch = pitch;
+      u.volume = 0.9;
+      window.speechSynthesis.speak(u);
+    } catch {
+      // Ignore speech synthesis errors on restricted browsers
+    }
+  }
+
+  tick() {
+    this._tone(660, 440, 0.08, 'triangle', 0.14);
   }
 
   playBGM(charId) {
