@@ -100,13 +100,15 @@ class SoundEngine {
   speak(text, { gender = 'male', pitch = 1.0 } = {}) {
     if (this.muted || this.volume <= 0 || !window.speechSynthesis || !text) return;
     try {
-      this.cancelSpeech();
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        this.cancelSpeech();
+      }
       const u = new SpeechSynthesisUtterance(text);
+      this._activeUtterance = u;
       const { voice, matchedGender } = this._pickVoice(gender);
       if (voice) u.voice = voice;
       u.lang = voice?.lang || 'zh-TW';
-      u.rate = 0.90;
-      // If browser only has a single default voice (often female), shift pitch further for male characters
+      u.rate = 1.18;
       const adjPitch = !matchedGender && gender === 'male' ? pitch * 0.84 : pitch;
       u.pitch = Math.max(0.45, Math.min(1.6, adjPitch));
       u.volume = this.volume;
@@ -119,16 +121,20 @@ class SoundEngine {
   speakAsync(text, opts = {}) {
     return new Promise((resolve) => {
       if (this.muted || this.volume <= 0 || !window.speechSynthesis || !text) {
-        setTimeout(resolve, 1800);
+        setTimeout(resolve, 1400);
         return;
       }
       try {
-        this.cancelSpeech();
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.cancel();
+        }
+        const startTime = performance.now();
         const u = new SpeechSynthesisUtterance(text);
+        this._activeUtterance = u;
         const { voice, matchedGender } = this._pickVoice(opts.gender || 'male');
         if (voice) u.voice = voice;
         u.lang = voice?.lang || 'zh-TW';
-        u.rate = 0.90;
+        u.rate = 1.18;
         const basePitch = opts.pitch ?? 1.0;
         const adjPitch = !matchedGender && opts.gender === 'male' ? basePitch * 0.84 : basePitch;
         u.pitch = Math.max(0.45, Math.min(1.6, adjPitch));
@@ -140,16 +146,19 @@ class SoundEngine {
           settled = true;
           this._speechResolve = null;
           clearTimeout(fallbackTimer);
-          resolve();
+          const elapsed = performance.now() - startTime;
+          const minDisplay = Math.max(0, 900 - elapsed);
+          setTimeout(resolve, minDisplay);
         };
         this._speechResolve = done;
         u.onend = done;
         u.onerror = done;
-        // Safety fallback in case browser blocks speech without firing onend
-        const fallbackTimer = setTimeout(done, Math.max(2200, text.length * 240));
-        window.speechSynthesis.speak(u);
+        const fallbackTimer = setTimeout(done, Math.max(1800, text.length * 180));
+        setTimeout(() => {
+          if (!settled) window.speechSynthesis.speak(u);
+        }, 40);
       } catch {
-        setTimeout(resolve, 1800);
+        setTimeout(resolve, 1400);
       }
     });
   }
