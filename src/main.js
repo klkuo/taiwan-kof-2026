@@ -61,10 +61,24 @@ window.addEventListener(
   { once: true, passive: true }
 );
 
+function clearBufferedInputs(resetHeld = false) {
+  keysJustPressed.clear();
+  dashTriggers.clear();
+  touchJustPressed.punch = false;
+  touchJustPressed.kick = false;
+  touchJustPressed.special = false;
+  if (resetHeld) {
+    touchHeld.left = false;
+    touchHeld.right = false;
+    touchHeld.up = false;
+  }
+}
+
 document.querySelectorAll('.t-btn').forEach((btn) => {
   const action = btn.dataset.action;
   const press = (e) => {
     e.preventDefault();
+    if (matchPhase !== 'fighting' || paused) return;
     btn.classList.add('active');
     if (action in touchHeld) {
       touchHeld[action] = true;
@@ -94,14 +108,16 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (!keysDown.has(e.code)) {
-    keysJustPressed.add(e.code);
-    if (['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
-      const now = performance.now();
-      if (lastTapTime[e.code] && now - lastTapTime[e.code] < 240) {
-        dashTriggers.add(e.code);
-        lastTapTime[e.code] = 0;
-      } else {
-        lastTapTime[e.code] = now;
+    if (matchPhase === 'fighting' && !paused) {
+      keysJustPressed.add(e.code);
+      if (['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+        const now = performance.now();
+        if (lastTapTime[e.code] && now - lastTapTime[e.code] < 240) {
+          dashTriggers.add(e.code);
+          lastTapTime[e.code] = 0;
+        } else {
+          lastTapTime[e.code] = now;
+        }
       }
     }
   }
@@ -358,6 +374,7 @@ async function runIntroDialogue(seqId) {
   if (seqId !== introSeqId || !engine) return;
 
   // Start 3-second countdown after both characters finish speaking
+  clearBufferedInputs(true);
   matchPhase = 'intro';
   phaseTimer = 3.45;
   introStep = 3;
@@ -368,6 +385,7 @@ async function runIntroDialogue(seqId) {
 function startRound() {
   introSeqId += 1;
   sound.cancelSpeech();
+  clearBufferedInputs(true);
   engine.resetRound(true);
   updateWinStars();
   hideSpeechBubbles();
@@ -544,8 +562,10 @@ function loop(now) {
       return;
     }
     if (matchPhase === 'dialogue') {
+      clearBufferedInputs(true);
       engine.step(dt, [{}, {}]);
     } else if (matchPhase === 'intro') {
+      clearBufferedInputs(true);
       phaseTimer -= dt;
       if (roundNum === 1) {
         if (phaseTimer <= 2.45 && introStep === 3) {
@@ -564,6 +584,7 @@ function loop(now) {
         } else if (phaseTimer <= 0) {
           hideAnnouncer();
           rivalBanner.classList.add('hidden');
+          clearBufferedInputs(true);
           matchPhase = 'fighting';
         }
       } else {
@@ -571,6 +592,7 @@ function loop(now) {
           showAnnouncer('FIGHT!');
         } else if (phaseTimer <= 0) {
           hideAnnouncer();
+          clearBufferedInputs(true);
           matchPhase = 'fighting';
         }
       }
