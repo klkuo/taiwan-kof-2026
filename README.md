@@ -8,6 +8,20 @@
 
 ---
 
+## 📸 實機畫面預覽
+
+![TAIWAN KOF 2026 實機對戰動圖](docs/gameplay.gif)
+
+| 模式選單 | 12 位全明星選角 |
+| :---: | :---: |
+| ![模式選單](docs/screenshots/title.png) | ![角色選擇](docs/screenshots/select.png) |
+
+| 愛情摩天輪黃金夜 | 赤星煉獄紫禁城 |
+| :---: | :---: |
+| ![愛情摩天輪黃金夜](docs/screenshots/stage_ferris.png) | ![赤星煉獄紫禁城](docs/screenshots/stage_boss.png) |
+
+---
+
 ## ✨ 遊戲特色
 
 - **12 位趣味諧音全明星參戰**：保留原姓氏的格鬥諧音命名，每位角色皆有專屬必殺技（飛行道具、光束砲、衝擊波、震地柱、疾風連踢）。
