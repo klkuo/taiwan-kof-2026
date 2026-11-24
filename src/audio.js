@@ -51,17 +51,22 @@ class SoundEngine {
     const pool = zhVoices.length ? zhVoices : this._voices;
     if (!pool.length) return { voice: null, matchedGender: false };
 
-    const maleRe = /yunjhe|kangkang|male|man|eddy|reed|rocko|grandpa|yunxi|yunyang/i;
-    const femaleRe = /meijia|tingting|sinji|hsiaochen|hsiaoyu|yating|female|woman|shelley|sandy|flo|grandma|xiaoxiao/i;
+    // Prefer reliable Taiwanese Mandarin voices; avoid novelty voices that may fail silently
+    const maleRe = /yunjhe|kangkang|yunxi|yunyang|\bmale\b/i;
+    const femaleRe = /meijia|tingting|sinji|hsiaochen|hsiaoyu|yating|xiaoxiao|\bfemale\b/i;
 
     const twPool = pool.filter((v) => /tw|hant/i.test(v.lang));
     const searchPool = twPool.length ? twPool : pool;
 
     const targetRe = gender === 'male' ? maleRe : femaleRe;
-    const match = searchPool.find((v) => targetRe.test(v.name)) || pool.find((v) => targetRe.test(v.name));
+    const match =
+      searchPool.find((v) => targetRe.test(v.name) && v.localService !== false) ||
+      searchPool.find((v) => targetRe.test(v.name)) ||
+      pool.find((v) => targetRe.test(v.name));
     if (match) return { voice: match, matchedGender: true };
 
-    return { voice: searchPool[0], matchedGender: false };
+    const reliableDefault = searchPool.find((v) => /meijia|tingting|sinji|google/i.test(v.name));
+    return { voice: reliableDefault || searchPool[0], matchedGender: false };
   }
 
   cancelSpeech() {
@@ -154,9 +159,15 @@ class SoundEngine {
         u.onend = done;
         u.onerror = done;
         const fallbackTimer = setTimeout(done, Math.max(1800, text.length * 180));
-        setTimeout(() => {
-          if (!settled) window.speechSynthesis.speak(u);
-        }, 40);
+        // Speak directly without redundant cancel() when queue is already clear
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.cancel();
+          setTimeout(() => {
+            if (!settled) window.speechSynthesis.speak(u);
+          }, 50);
+        } else {
+          window.speechSynthesis.speak(u);
+        }
       } catch {
         setTimeout(resolve, 1400);
       }
