@@ -29,6 +29,50 @@ class SoundEngine {
     this._bgmStep = 0;
     this._bgmNextTime = 0;
     this._currentTrackId = null;
+    this._voices = [];
+    this._speechResolve = null;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      this._refreshVoices();
+      window.speechSynthesis.addEventListener?.('voiceschanged', () => this._refreshVoices());
+    }
+  }
+
+  _refreshVoices() {
+    try {
+      this._voices = window.speechSynthesis.getVoices() || [];
+    } catch {
+      this._voices = [];
+    }
+  }
+
+  _pickVoice(gender) {
+    if (!this._voices.length) this._refreshVoices();
+    const zhVoices = this._voices.filter((v) => /zh[-_]?tw|cmn[-_]?hant|zh/i.test(v.lang));
+    const pool = zhVoices.length ? zhVoices : this._voices;
+    if (!pool.length) return { voice: null, matchedGender: false };
+
+    const maleRe = /yunjhe|kangkang|male|man|eddy|reed|rocko|grandpa|yunxi|yunyang/i;
+    const femaleRe = /meijia|tingting|sinji|hsiaochen|hsiaoyu|yating|female|woman|shelley|sandy|flo|grandma|xiaoxiao/i;
+
+    const twPool = pool.filter((v) => /tw|hant/i.test(v.lang));
+    const searchPool = twPool.length ? twPool : pool;
+
+    const targetRe = gender === 'male' ? maleRe : femaleRe;
+    const match = searchPool.find((v) => targetRe.test(v.name)) || pool.find((v) => targetRe.test(v.name));
+    if (match) return { voice: match, matchedGender: true };
+
+    return { voice: searchPool[0], matchedGender: false };
+  }
+
+  cancelSpeech() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (this._speechResolve) {
+      const res = this._speechResolve;
+      this._speechResolve = null;
+      res();
+    }
   }
 
   setVolume(val) {
@@ -47,25 +91,67 @@ class SoundEngine {
     }
     if (val) {
       this._pauseBGM();
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      this.cancelSpeech();
     } else if (this._currentTrackId) {
       this.playBGM(this._currentTrackId);
     }
   }
 
-  speak(text, pitch = 1.0) {
+  speak(text, { gender = 'male', pitch = 1.0 } = {}) {
     if (this.muted || this.volume <= 0 || !window.speechSynthesis || !text) return;
     try {
-      window.speechSynthesis.cancel();
+      this.cancelSpeech();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-TW';
-      u.rate = 1.15;
-      u.pitch = pitch;
+      const { voice, matchedGender } = this._pickVoice(gender);
+      if (voice) u.voice = voice;
+      u.lang = voice?.lang || 'zh-TW';
+      u.rate = 0.90;
+      // If browser only has a single default voice (often female), shift pitch further for male characters
+      const adjPitch = !matchedGender && gender === 'male' ? pitch * 0.84 : pitch;
+      u.pitch = Math.max(0.45, Math.min(1.6, adjPitch));
       u.volume = this.volume;
       window.speechSynthesis.speak(u);
     } catch {
       // Ignore speech synthesis errors on restricted browsers
     }
+  }
+
+  speakAsync(text, opts = {}) {
+    return new Promise((resolve) => {
+      if (this.muted || this.volume <= 0 || !window.speechSynthesis || !text) {
+        setTimeout(resolve, 1800);
+        return;
+      }
+      try {
+        this.cancelSpeech();
+        const u = new SpeechSynthesisUtterance(text);
+        const { voice, matchedGender } = this._pickVoice(opts.gender || 'male');
+        if (voice) u.voice = voice;
+        u.lang = voice?.lang || 'zh-TW';
+        u.rate = 0.90;
+        const basePitch = opts.pitch ?? 1.0;
+        const adjPitch = !matchedGender && opts.gender === 'male' ? basePitch * 0.84 : basePitch;
+        u.pitch = Math.max(0.45, Math.min(1.6, adjPitch));
+        u.volume = this.volume;
+
+        let settled = false;
+        const done = () => {
+          if (settled) return;
+          settled = true;
+          this._speechResolve = null;
+          clearTimeout(fallbackTimer);
+          resolve();
+        };
+        this._speechResolve = done;
+        u.onend = done;
+        u.onerror = done;
+        // Safety fallback in case browser blocks speech without firing onend
+        const fallbackTimer = setTimeout(done, Math.max(2200, text.length * 240));
+        window.speechSynthesis.speak(u);
+      } catch {
+        setTimeout(resolve, 1800);
+      }
+    });
   }
 
   tick() {

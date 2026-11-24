@@ -1,4 +1,4 @@
-import { ROSTER, ROSTER_BY_ID, getRivalIntro } from './roster.js';
+import { ROSTER, ROSTER_BY_ID, getRivalIntro, pickRandomLine } from './roster.js';
 import { sound } from './audio.js';
 import { CombatEngine } from './physics.js';
 import { FighterAI } from './ai.js';
@@ -36,11 +36,12 @@ let p2Pick = null;
 let arcadeLadder = [];
 let arcadeStage = 0;
 let roundNum = 1;
-let matchPhase = 'idle'; // intro | fighting | roundOver | matchOver
+let matchPhase = 'idle'; // dialogue | intro | fighting | roundOver | matchOver
 let phaseTimer = 0;
 let bannerTimer = 0;
 let paused = false;
 let introStep = 0; // tracks 3 -> 2 -> 1 -> FIGHT! steps
+let introSeqId = 0;
 
 // Double-tap dash tracking
 const lastTapTime = {};
@@ -318,33 +319,49 @@ function hideSpeechBubbles() {
   speechBubbles.forEach((b) => b.classList.add('hidden'));
 }
 
-function showSpeech(slot, charConfig, text) {
+function showSpeech(slot, charConfig, text, speak = true) {
   const b = speechBubbles[slot];
   b.textContent = `${charConfig.name}：「${text}」`;
   b.classList.remove('hidden');
-  sound.speak(text, slot === 0 ? 1.05 : 0.92);
+  if (speak) {
+    sound.speak(text, { gender: charConfig.gender, pitch: charConfig.voicePitch });
+  }
+}
+
+async function runIntroDialogue(seqId) {
+  const p1Line = pickRandomLine(p1Pick.introLines);
+  showSpeech(0, p1Pick, p1Line, false);
+  await sound.speakAsync(p1Line, { gender: p1Pick.gender, pitch: p1Pick.voicePitch });
+  if (seqId !== introSeqId || !engine) return;
+
+  await new Promise((r) => setTimeout(r, 250));
+  if (seqId !== introSeqId || !engine) return;
+
+  const p2Line = pickRandomLine(p2Pick.introLines);
+  showSpeech(1, p2Pick, p2Line, false);
+  await sound.speakAsync(p2Line, { gender: p2Pick.gender, pitch: p2Pick.voicePitch });
+  if (seqId !== introSeqId || !engine) return;
+
+  await new Promise((r) => setTimeout(r, 250));
+  if (seqId !== introSeqId || !engine) return;
+
+  // Start 3-second countdown after both characters finish speaking
+  matchPhase = 'intro';
+  phaseTimer = 3.45;
+  introStep = 3;
+  showAnnouncer('3');
+  sound.tick();
 }
 
 function startRound() {
+  introSeqId += 1;
+  sound.cancelSpeech();
   engine.resetRound(true);
   updateWinStars();
   hideSpeechBubbles();
+  hideAnnouncer();
   el('hud-round').textContent =
     mode === 'arcade' ? `STAGE ${arcadeStage + 1}/4 • ROUND ${roundNum}` : `ROUND ${roundNum}`;
-  matchPhase = 'intro';
-
-  if (roundNum === 1) {
-    phaseTimer = 3.45;
-    introStep = 3;
-    showAnnouncer('3');
-    sound.tick();
-    showSpeech(0, p1Pick, p1Pick.introLine);
-  } else {
-    phaseTimer = 1.45;
-    introStep = 0;
-    showAnnouncer(`ROUND ${roundNum}`);
-    sound.roundStart();
-  }
 
   const rivalText = roundNum === 1 ? getRivalIntro(p1Pick.id, p2Pick.id) : null;
   if (rivalText) {
@@ -352,6 +369,17 @@ function startRound() {
     rivalBanner.classList.remove('hidden');
   } else {
     rivalBanner.classList.add('hidden');
+  }
+
+  if (roundNum === 1) {
+    matchPhase = 'dialogue';
+    runIntroDialogue(introSeqId);
+  } else {
+    matchPhase = 'intro';
+    phaseTimer = 1.45;
+    introStep = 0;
+    showAnnouncer(`ROUND ${roundNum}`);
+    sound.roundStart();
   }
 }
 
@@ -421,6 +449,8 @@ el('btn-pause').addEventListener('click', () => togglePause(true));
 el('btn-resume').addEventListener('click', () => togglePause(false));
 el('btn-pause-rematch').addEventListener('click', startMatch);
 el('btn-pause-select').addEventListener('click', () => {
+  introSeqId += 1;
+  sound.cancelSpeech();
   paused = false;
   sound.stopBGM();
   hud.classList.add('hidden');
@@ -461,6 +491,8 @@ el('btn-mute').addEventListener('click', () => {
 syncVolumeUI();
 
 el('btn-quit').addEventListener('click', () => {
+  introSeqId += 1;
+  sound.cancelSpeech();
   sound.stopBGM();
   hud.classList.add('hidden');
   engine = null;
@@ -499,14 +531,15 @@ function loop(now) {
       renderer.renderer.render(renderer.scene, renderer.camera);
       return;
     }
-    if (matchPhase === 'intro') {
+    if (matchPhase === 'dialogue') {
+      engine.step(dt, [{}, {}]);
+    } else if (matchPhase === 'intro') {
       phaseTimer -= dt;
       if (roundNum === 1) {
         if (phaseTimer <= 2.45 && introStep === 3) {
           introStep = 2;
           showAnnouncer('2');
           sound.tick();
-          showSpeech(1, p2Pick, p2Pick.introLine);
         } else if (phaseTimer <= 1.45 && introStep === 2) {
           introStep = 1;
           showAnnouncer('1');
@@ -550,11 +583,11 @@ function loop(now) {
       if (engine.finished) {
         updateWinStars();
         matchPhase = 'roundOver';
-        phaseTimer = 2.2;
+        phaseTimer = 2.6;
         showAnnouncer(engine.winnerSlot === 'draw' ? 'DRAW!' : 'K.O.!');
         if (engine.winnerSlot === 0 || engine.winnerSlot === 1) {
           const winner = engine.fighters[engine.winnerSlot].config;
-          showSpeech(engine.winnerSlot, winner, winner.koLine);
+          showSpeech(engine.winnerSlot, winner, pickRandomLine(winner.koLines));
         }
       }
     } else if (matchPhase === 'roundOver') {
