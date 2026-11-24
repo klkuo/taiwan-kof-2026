@@ -1,0 +1,839 @@
+{
+  "chen": {
+    "id": "chen",
+    "sheet": "sprites/chen.png",
+    "portrait": "sprites/chen_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 159,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 230,
+        "contentH": 262
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 261,
+        "contentH": 295
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 239,
+        "contentH": 249
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 289,
+        "contentH": 275
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 214,
+        "contentH": 279
+      }
+    }
+  },
+  "han": {
+    "id": "han",
+    "sheet": "sprites/han.png",
+    "portrait": "sprites/han_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 159,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 231,
+        "contentH": 264
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 278,
+        "contentH": 274
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 230,
+        "contentH": 234
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 298,
+        "contentH": 275
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 208,
+        "contentH": 269
+      }
+    }
+  },
+  "ho": {
+    "id": "ho",
+    "sheet": "sprites/ho.png",
+    "portrait": "sprites/ho_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 161,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 233,
+        "contentH": 262
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 268,
+        "contentH": 276
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 240,
+        "contentH": 253
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 274,
+        "contentH": 368
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 215,
+        "contentH": 339
+      }
+    }
+  },
+  "hsiao": {
+    "id": "hsiao",
+    "sheet": "sprites/hsiao.png",
+    "portrait": "sprites/hsiao_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 159,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 230,
+        "contentH": 261
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 245,
+        "contentH": 272
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 222,
+        "contentH": 250
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 286,
+        "contentH": 273
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 208,
+        "contentH": 268
+      }
+    }
+  },
+  "huan": {
+    "id": "huan",
+    "sheet": "sprites/huan.png",
+    "portrait": "sprites/huan_portrait.png",
+    "sheetWidth": 3136,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 7,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 183,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 217,
+        "contentH": 269
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 247,
+        "contentH": 269
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 220,
+        "contentH": 247
+      },
+      "dash": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 308,
+        "contentH": 244
+      },
+      "special": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 432,
+        "contentH": 167
+      },
+      "hit": {
+        "index": 6,
+        "x": 2688,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 360,
+        "contentH": 282
+      }
+    }
+  },
+  "ko": {
+    "id": "ko",
+    "sheet": "sprites/ko.png",
+    "portrait": "sprites/ko_portrait.png",
+    "sheetWidth": 3136,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 7,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 181,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 255,
+        "contentH": 268
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 269,
+        "contentH": 275
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 223,
+        "contentH": 244
+      },
+      "dash": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 272,
+        "contentH": 274
+      },
+      "special": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 432,
+        "contentH": 256
+      },
+      "hit": {
+        "index": 6,
+        "x": 2688,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 318,
+        "contentH": 280
+      }
+    }
+  },
+  "li": {
+    "id": "li",
+    "sheet": "sprites/li.png",
+    "portrait": "sprites/li_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 159,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 231,
+        "contentH": 264
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 266,
+        "contentH": 275
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 239,
+        "contentH": 249
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 285,
+        "contentH": 275
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 217,
+        "contentH": 287
+      }
+    }
+  },
+  "lu": {
+    "id": "lu",
+    "sheet": "sprites/lu.png",
+    "portrait": "sprites/lu_portrait.png",
+    "sheetWidth": 3136,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 7,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 169,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 217,
+        "contentH": 272
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 239,
+        "contentH": 272
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 208,
+        "contentH": 245
+      },
+      "dash": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 206,
+        "contentH": 265
+      },
+      "special": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 395,
+        "contentH": 280
+      },
+      "hit": {
+        "index": 6,
+        "x": 2688,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 244,
+        "contentH": 265
+      }
+    }
+  },
+  "ma": {
+    "id": "ma",
+    "sheet": "sprites/ma.png",
+    "portrait": "sprites/ma_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 158,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 229,
+        "contentH": 262
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 265,
+        "contentH": 272
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 237,
+        "contentH": 248
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 291,
+        "contentH": 274
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 224,
+        "contentH": 286
+      }
+    }
+  },
+  "mo": {
+    "id": "mo",
+    "sheet": "sprites/mo.png",
+    "portrait": "sprites/mo_portrait.png",
+    "sheetWidth": 3136,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 7,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 173,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 223,
+        "contentH": 271
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 249,
+        "contentH": 273
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 214,
+        "contentH": 247
+      },
+      "dash": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 211,
+        "contentH": 265
+      },
+      "special": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 412,
+        "contentH": 281
+      },
+      "hit": {
+        "index": 6,
+        "x": 2688,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 248,
+        "contentH": 273
+      }
+    }
+  },
+  "san": {
+    "id": "san",
+    "sheet": "sprites/san.png",
+    "portrait": "sprites/san_portrait.png",
+    "sheetWidth": 3136,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 7,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 169,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 218,
+        "contentH": 271
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 242,
+        "contentH": 273
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 209,
+        "contentH": 246
+      },
+      "dash": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 286,
+        "contentH": 266
+      },
+      "special": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 408,
+        "contentH": 268
+      },
+      "hit": {
+        "index": 6,
+        "x": 2688,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 245,
+        "contentH": 267
+      }
+    }
+  },
+  "tsai": {
+    "id": "tsai",
+    "sheet": "sprites/tsai.png",
+    "portrait": "sprites/tsai_portrait.png",
+    "sheetWidth": 2688,
+    "sheetHeight": 384,
+    "cellWidth": 448,
+    "cellHeight": 384,
+    "frameCount": 6,
+    "frames": {
+      "idle": {
+        "index": 0,
+        "x": 0,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 156,
+        "contentH": 276
+      },
+      "run": {
+        "index": 1,
+        "x": 448,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 225,
+        "contentH": 263
+      },
+      "punch": {
+        "index": 2,
+        "x": 896,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 258,
+        "contentH": 278
+      },
+      "kick": {
+        "index": 3,
+        "x": 1344,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 237,
+        "contentH": 256
+      },
+      "special": {
+        "index": 4,
+        "x": 1792,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 276,
+        "contentH": 278
+      },
+      "hit": {
+        "index": 5,
+        "x": 2240,
+        "y": 0,
+        "w": 448,
+        "h": 384,
+        "contentW": 216,
+        "contentH": 269
+      }
+    }
+  }
+}

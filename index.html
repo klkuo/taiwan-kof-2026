@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TAIWAN KOF 2026 — 台灣格鬥天王</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Title / Mode Select -->
+    <div id="title-screen" class="overlay active">
+      <div class="title-card">
+        <div class="badge">2.5D WebGL FIGHTING GAME</div>
+        <h1 class="logo">TAIWAN <span>KOF</span> 2026</h1>
+        <p class="subtitle">台灣政壇格鬥天王 — 12 位全明星參戰</p>
+        <div class="mode-buttons">
+          <button class="btn-mode primary" data-mode="arcade">
+            <span class="mode-title">ARCADE 街機模式</span>
+            <span class="mode-desc">連戰 4 關・挑戰終極魔王</span>
+          </button>
+          <button class="btn-mode" data-mode="vscpu">
+            <span class="mode-title">VS CPU 自由對戰</span>
+            <span class="mode-desc">自選對手・可選終極魔王</span>
+          </button>
+          <button class="btn-mode" data-mode="pvp">
+            <span class="mode-title">2P VERSUS 雙人對打</span>
+            <span class="mode-desc">同機雙人鍵盤對決</span>
+          </button>
+        </div>
+        <div class="controls-preview">
+          <div><strong>P1:</strong> `W A S D` 移動跳躍 ｜ `J` 拳 ｜ `K` 腳 ｜ `L` 必殺技 (蓄力≥35%)</div>
+          <div><strong>P2:</strong> `方向鍵` 移動跳躍 ｜ `1/U` 拳 ｜ `2/I` 腳 ｜ `3/O` 必殺技 ｜ <strong>後退可防禦</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Character Select -->
+    <div id="select-screen" class="overlay">
+      <div class="select-header">
+        <button id="btn-back-title" class="btn-small">← 返回</button>
+        <h2 id="select-prompt">SELECT YOUR FIGHTER (P1)</h2>
+        <div id="arcade-badge" class="badge">ARCADE</div>
+      </div>
+
+      <div class="select-body">
+        <div class="preview-panel p1" id="p1-preview">
+          <div class="slot-tag">P1</div>
+          <img id="p1-preview-img" src="" alt="" />
+          <div class="preview-info">
+            <div id="p1-preview-name" class="p-name">-</div>
+            <div id="p1-preview-title" class="p-title">-</div>
+            <div id="p1-preview-special" class="p-special">-</div>
+          </div>
+        </div>
+
+        <div class="roster-grid" id="roster-grid"></div>
+
+        <div class="preview-panel p2" id="p2-preview">
+          <div class="slot-tag">P2 / CPU</div>
+          <img id="p2-preview-img" src="" alt="" />
+          <div class="preview-info">
+            <div id="p2-preview-name" class="p-name">-</div>
+            <div id="p2-preview-title" class="p-title">-</div>
+            <div id="p2-preview-special" class="p-special">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="select-footer">
+        <button id="btn-fight" class="btn-fight" disabled>READY TO FIGHT!</button>
+      </div>
+    </div>
+
+    <!-- In-Game HUD -->
+    <div id="hud" class="hud hidden">
+      <div class="hud-top">
+        <!-- P1 -->
+        <div class="fighter-hud p1">
+          <img id="hud-p1-portrait" class="hud-portrait" src="" alt="" />
+          <div class="hud-bars">
+            <div class="hud-name-row">
+              <span id="hud-p1-name" class="hud-name">P1</span>
+              <div id="hud-p1-wins" class="win-stars"></div>
+            </div>
+            <div class="hp-track">
+              <div id="hud-p1-hp-trail" class="hp-trail"></div>
+              <div id="hud-p1-hp" class="hp-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-box">
+          <div id="hud-round" class="round-label">ROUND 1</div>
+          <div id="hud-timer" class="timer-num">99</div>
+          <div id="hud-stage-info" class="stage-info">STAGE</div>
+        </div>
+
+        <!-- P2 -->
+        <div class="fighter-hud p2">
+          <div class="hud-bars">
+            <div class="hud-name-row">
+              <div id="hud-p2-wins" class="win-stars"></div>
+              <span id="hud-p2-name" class="hud-name">P2</span>
+            </div>
+            <div class="hp-track">
+              <div id="hud-p2-hp-trail" class="hp-trail"></div>
+              <div id="hud-p2-hp" class="hp-fill"></div>
+            </div>
+          </div>
+          <img id="hud-p2-portrait" class="hud-portrait" src="" alt="" />
+        </div>
+      </div>
+
+      <!-- Combo & Special Banners -->
+      <div id="combo-p1" class="combo-badge left hidden">2 HITS!</div>
+      <div id="combo-p2" class="combo-badge right hidden">2 HITS!</div>
+      <div id="special-banner" class="special-banner hidden"></div>
+      <div id="announcer" class="announcer hidden">ROUND 1</div>
+
+      <!-- Bottom Energy Bars & Quick Controls -->
+      <div class="hud-bottom">
+        <div class="energy-wrap p1">
+          <div class="energy-label">POWER <span id="hud-p1-energy-txt">50%</span></div>
+          <div class="energy-track"><div id="hud-p1-energy" class="energy-fill"></div></div>
+        </div>
+
+        <div class="hud-actions">
+          <button id="btn-mute" class="btn-tiny">🔊 音效</button>
+          <button id="btn-quit" class="btn-tiny">選角</button>
+        </div>
+
+        <div class="energy-wrap p2">
+          <div class="energy-label"><span id="hud-p2-energy-txt">50%</span> POWER</div>
+          <div class="energy-track"><div id="hud-p2-energy" class="energy-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match End Modal -->
+    <div id="result-modal" class="overlay">
+      <div class="result-card">
+        <div id="result-tag" class="badge">MATCH OVER</div>
+        <h2 id="result-title">P1 WINS!</h2>
+        <p id="result-quote" class="result-quote"></p>
+        <div class="result-actions">
+          <button id="btn-next-match" class="btn-fight">下一場</button>
+          <button id="btn-rematch" class="btn-small">重新對戰</button>
+          <button id="btn-to-select" class="btn-small">回到選角</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
