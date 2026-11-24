@@ -47,13 +47,16 @@ class SoundEngine {
 
   _pickVoice(gender) {
     if (!this._voices.length) this._refreshVoices();
-    const zhVoices = this._voices.filter((v) => /zh[-_]?tw|cmn[-_]?hant|zh/i.test(v.lang));
-    const pool = zhVoices.length ? zhVoices : this._voices;
+    // Strictly Mandarin Chinese only: exclude Cantonese (zh-HK / yue / Sinji)
+    const isCantonese = (v) => /hk|yue|sinji|canton/i.test(`${v.lang} ${v.name}`);
+    const zhVoices = this._voices.filter(
+      (v) => !isCantonese(v) && /zh[-_]?(tw|cn)|cmn[-_]?(hant|hans)|^zh$/i.test(v.lang)
+    );
+    const pool = zhVoices.length ? zhVoices : this._voices.filter((v) => !isCantonese(v));
     if (!pool.length) return { voice: null, matchedGender: false };
 
-    // Prefer reliable Taiwanese Mandarin voices; avoid novelty voices that may fail silently
-    const maleRe = /yunjhe|kangkang|yunxi|yunyang|\bmale\b/i;
-    const femaleRe = /meijia|tingting|sinji|hsiaochen|hsiaoyu|yating|xiaoxiao|\bfemale\b/i;
+    const maleRe = /yunjhe|kangkang|yunxi|yunyang|zhiwei|\bmale\b/i;
+    const femaleRe = /meijia|tingting|hsiaochen|hsiaoyu|yating|hanhan|xiaoxiao|\bfemale\b/i;
 
     const twPool = pool.filter((v) => /tw|hant/i.test(v.lang));
     const searchPool = twPool.length ? twPool : pool;
@@ -65,7 +68,7 @@ class SoundEngine {
       pool.find((v) => targetRe.test(v.name));
     if (match) return { voice: match, matchedGender: true };
 
-    const reliableDefault = searchPool.find((v) => /meijia|tingting|sinji|google/i.test(v.name));
+    const reliableDefault = searchPool.find((v) => /meijia|tingting|google/i.test(v.name));
     return { voice: reliableDefault || searchPool[0], matchedGender: false };
   }
 
@@ -102,7 +105,7 @@ class SoundEngine {
     }
   }
 
-  speak(text, { gender = 'male', pitch = 1.0 } = {}) {
+  speak(text, { gender = 'male', pitch = 1.0, rate = 1.15 } = {}) {
     if (this.muted || this.volume <= 0 || !window.speechSynthesis || !text) return;
     try {
       if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
@@ -113,7 +116,7 @@ class SoundEngine {
       const { voice, matchedGender } = this._pickVoice(gender);
       if (voice) u.voice = voice;
       u.lang = voice?.lang || 'zh-TW';
-      u.rate = 1.18;
+      u.rate = rate;
       const adjPitch = !matchedGender && gender === 'male' ? pitch * 0.84 : pitch;
       u.pitch = Math.max(0.45, Math.min(1.6, adjPitch));
       u.volume = this.volume;
@@ -139,7 +142,7 @@ class SoundEngine {
         const { voice, matchedGender } = this._pickVoice(opts.gender || 'male');
         if (voice) u.voice = voice;
         u.lang = voice?.lang || 'zh-TW';
-        u.rate = 1.18;
+        u.rate = opts.rate ?? 1.15;
         const basePitch = opts.pitch ?? 1.0;
         const adjPitch = !matchedGender && opts.gender === 'male' ? basePitch * 0.84 : basePitch;
         u.pitch = Math.max(0.45, Math.min(1.6, adjPitch));

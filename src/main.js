@@ -324,14 +324,22 @@ function showSpeech(slot, charConfig, text, speak = true) {
   b.textContent = `${charConfig.name}：「${text}」`;
   b.classList.remove('hidden');
   if (speak) {
-    sound.speak(text, { gender: charConfig.gender, pitch: charConfig.voicePitch });
+    sound.speak(text, {
+      gender: charConfig.gender,
+      pitch: charConfig.voicePitch,
+      rate: charConfig.voiceRate,
+    });
   }
 }
 
 async function runIntroDialogue(seqId) {
   const p1Line = pickRandomLine(p1Pick.introLines);
   showSpeech(0, p1Pick, p1Line, false);
-  await sound.speakAsync(p1Line, { gender: p1Pick.gender, pitch: p1Pick.voicePitch });
+  await sound.speakAsync(p1Line, {
+    gender: p1Pick.gender,
+    pitch: p1Pick.voicePitch,
+    rate: p1Pick.voiceRate,
+  });
   if (seqId !== introSeqId || !engine) return;
 
   await new Promise((r) => setTimeout(r, 250));
@@ -339,7 +347,11 @@ async function runIntroDialogue(seqId) {
 
   const p2Line = pickRandomLine(p2Pick.introLines);
   showSpeech(1, p2Pick, p2Line, false);
-  await sound.speakAsync(p2Line, { gender: p2Pick.gender, pitch: p2Pick.voicePitch });
+  await sound.speakAsync(p2Line, {
+    gender: p2Pick.gender,
+    pitch: p2Pick.voicePitch,
+    rate: p2Pick.voiceRate,
+  });
   if (seqId !== introSeqId || !engine) return;
 
   await new Promise((r) => setTimeout(r, 250));
